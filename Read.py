@@ -24,6 +24,8 @@
 import RPi.GPIO as GPIO
 import MFRC522
 import signal
+import subprocess
+import time
 
 continue_reading = True
 
@@ -59,23 +61,17 @@ while continue_reading:
 
     # If we have the UID, continue
     if status == MIFAREReader.MI_OK:
-
-        # Print UID
-        print "Card read UID: %s,%s,%s,%s" % (uid[0], uid[1], uid[2], uid[3])
-    
-        # This is the default key for authentication
-        key = [0xFF,0xFF,0xFF,0xFF,0xFF,0xFF]
+        fullString = uid[0] + uid[1] + uid[2]
+        readyString = ""
         
-        # Select the scanned tag
-        MIFAREReader.MFRC522_SelectTag(uid)
-
-        # Authenticate
-        status = MIFAREReader.MFRC522_Auth(MIFAREReader.PICC_AUTHENT1A, 8, key, uid)
-
-        # Check if authenticated
-        if status == MIFAREReader.MI_OK:
-            MIFAREReader.MFRC522_Read(8)
-            MIFAREReader.MFRC522_StopCrypto1()
-        else:
-            print "Authentication error"
+        for x in fullString:
+            readyString + x + " "
+        # the command will be something like "xdotool key A B C - A B C D"
+        # This will produce the output ABC-ABCD
+        subprocess.Popen("xdotool key " + readyString.upper())
+        
+        # The reading of the card is fast
+        # This is to not spam the user input
+        time.sleep(1)
+        
 
